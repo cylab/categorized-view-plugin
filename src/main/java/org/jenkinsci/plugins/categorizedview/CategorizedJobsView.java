@@ -3,11 +3,11 @@ package org.jenkinsci.plugins.categorizedview;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.TopLevelItem;
+import hudson.model.ViewGroup;
 import hudson.model.Descriptor;
 import hudson.model.Descriptor.FormException;
 import hudson.model.ListView;
 import hudson.model.ViewDescriptor;
-import hudson.model.ViewGroup;
 import hudson.util.CaseInsensitiveComparator;
 import hudson.util.DescribableList;
 import hudson.util.FormValidation;
@@ -36,7 +36,8 @@ public class CategorizedJobsView extends ListView {
 	public CategorizedJobsView(String name) {
 		super(name);
 	}
-
+	
+	
 	public CategorizedJobsView(String name, ViewGroup owner) {
 		super(name, owner);
 	}
@@ -64,7 +65,8 @@ public class CategorizedJobsView extends ListView {
 		}
 		return this;
 	}
-
+	
+	
 	@Override
 	public List<TopLevelItem> getItems() {
 		categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), groupingRules);
@@ -86,7 +88,7 @@ public class CategorizedJobsView extends ListView {
     }
     
     public String getGroupClassFor(TopLevelItem item) {
-		return categorizedItemsBuilder.getGroupClassFor(item);
+    	return categorizedItemsBuilder.getGroupClassFor(item);
     }
     
     public boolean hasLink(TopLevelItem item) {
@@ -117,11 +119,11 @@ public class CategorizedJobsView extends ListView {
 		try {
 			Field field = ListView.class.getDeclaredField("columns");
 			field.setAccessible(true);
-			if(field.get(this)==null){
-				field.set(
-					this,
-					new DescribableList<ListViewColumn, Descriptor<ListViewColumn>>(
-							this, CategorizedJobsListViewColumn.createDefaultCategorizedInitialColumnList()));
+			Object columns = field.get(this);
+			if (columns == null) {
+				field.set(this,
+						new DescribableList<ListViewColumn, Descriptor<ListViewColumn>>(
+								this, CategorizedJobsListViewColumn.createDefaultCategorizedInitialColumnList()));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

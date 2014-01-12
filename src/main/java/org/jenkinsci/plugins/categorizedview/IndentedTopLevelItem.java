@@ -16,7 +16,7 @@ public class IndentedTopLevelItem {
 		this.nestLevel = nestLevel;
 		this.groupLabel = groupLabel;
 		// make a unique (barely) readable css-classname that works with for all possible labels
-		this.groupClass = "g_"+groupLabel.replaceAll("[^a-zA-Z0-9_]","_")+groupLabel.hashCode();
+		this.groupClass = "g_"+groupLabel.replaceAll("[^a-zA-Z0-9_]","_")+groupLabel.hashCode();		
 		this.specificCss.append(css);
 	}
 	
