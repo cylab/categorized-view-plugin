@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.categorizedview;
 
 import hudson.Extension;
+import hudson.Functions;
 import hudson.Util;
 import hudson.model.TopLevelItem;
 import hudson.model.ViewGroup;
@@ -23,11 +24,13 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 
 public class CategorizedJobsView extends ListView {
 	private List<GroupingRule> groupingRules = new ArrayList<GroupingRule>();
@@ -35,6 +38,10 @@ public class CategorizedJobsView extends ListView {
 	private DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> categorizationCriteria;
 	
 	private transient CategorizedItemsBuilder categorizedItemsBuilder;
+
+	private boolean lazyLoading=false;
+
+	private boolean onlyExpandSelected=false;
 	
 	@DataBoundConstructor
 	public CategorizedJobsView(String name) {
@@ -98,6 +105,8 @@ public class CategorizedJobsView extends ListView {
 	protected void submit(StaplerRequest req) throws ServletException, FormException, IOException {
 		forcefullyDisableRecurseBecauseItCausesClassCastExceptionOnJenkins1_532_1(req);
 		super.submit(req);
+		lazyLoading=req.getSubmittedForm().getBoolean("lazyLoading");
+		onlyExpandSelected=req.getSubmittedForm().getBoolean("onlyExpandSelected");
 		categorizationCriteria.rebuildHetero(req, req.getSubmittedForm(), CategorizationCriteria.all(), "categorizationCriteria");
 	}
 
@@ -123,7 +132,42 @@ public class CategorizedJobsView extends ListView {
     public boolean isGroupTopLevelItem(TopLevelItem item) {
     	return item instanceof GroupTopLevelItem;
     }
-	
+
+	public boolean isLazyLoading()
+	{
+		return lazyLoading;
+	}
+
+	public boolean isOnlyExpandSelected()
+	{
+		return onlyExpandSelected;
+	}
+
+	public void doLazyJobList(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException
+	{
+		String group = req.getParameter("group");
+		List<GroupTopLevelItem> groupItems = categorizedItemsBuilder.getGroupItems();
+		for (int i = 0; i < groupItems.size(); i++)
+		{
+			GroupTopLevelItem item = groupItems.get(i);
+			if(item.getGroupClass().equals(group))
+			{
+				req.setAttribute("jobs",item.getNestedItems());
+				req.setAttribute("group",group);
+				req.setAttribute("categoryId",group);
+				req.setAttribute("columnExtensions",getColumns());
+				String viewName = "lazyJobList.jelly";
+				RequestDispatcher page = req.getView(this, viewName);
+				if(page==null)
+					rsp.sendError(404, "View " + viewName + " could not be found!");
+				else
+					page.forward(req, rsp);
+				return;
+			}
+		}
+		rsp.sendError(404,"Could not find jobs for group "+group);
+	}
+
 	@Extension
 	public static final class DescriptorImpl extends ViewDescriptor {
 		public String getDisplayName() {

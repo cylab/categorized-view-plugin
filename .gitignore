@@ -1,5 +1,11 @@
+src/main/resources/rebel.xml
 target
 .settings
 .classpath
 .project
 work
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties

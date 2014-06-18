@@ -1,0 +1,9 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core"  xmlns:c="/lib/categorizedview">
+	<c:ajax>
+		<j:forEach var="job" items="${jobs}">
+			<j:set var="relativeLinkToJob" value="${h.getRelativeLinkTo(job)}"/>
+			<c:catProjectViewNestedRow jobBaseUrl="${relativeLinkToJob.substring(0, relativeLinkToJob.length() - job.shortUrl.length())}"/>
+		</j:forEach>
+	</c:ajax>
+</j:jelly>

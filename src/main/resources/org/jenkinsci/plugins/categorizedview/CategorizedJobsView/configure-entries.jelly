@@ -93,6 +93,17 @@ THE SOFTWARE.
 		</f:block>
 	</f:section>
 
+	<f:section title="${%Category options}">
+		<f:entry field="lazyLoading">
+			<f:checkbox name="lazyLoading" checked="${it.lazyLoading}" title="${%Lazy job loading}"/>
+			<br/>
+		</f:entry>
+		<f:entry field="onlyExpandSelected">
+			<f:checkbox name="onlyExpandSelected" checked="${it.onlyExpandSelected}" title="${%Only expand selected category}"/>
+			<br/>
+		</f:entry>
+	</f:section>
+
 	<f:section title="${%Columns}">
 		<f:block>
 			<f:repeatableHeteroProperty field="columns" hasHeader="true" addCaption="${%Add column}"/>

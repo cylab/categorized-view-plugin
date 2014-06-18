@@ -32,15 +32,78 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core" xmlns:x="jelly:xml" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
 	xmlns:c="/lib/categorizedview">
   <j:if test="${!view.isGroupTopLevelItem(job)}">
-  	<tr id="${job.name}" class="${job.disabled?'disabledJob':null}">
+  	  <tbody id="ctb_none">
+	  <tr id="${job.name}" class="${job.disabled?'disabledJob':null}" category="none">
 	  	<td><st:nbsp/></td>
 	    <j:forEach var="col" items="${columnExtensions}">
 	      <st:include page="column.jelly" it="${col}"/>
 	    </j:forEach>
 	    <td> <st:nbsp/> </td>
 	  </tr>
-  </j:if>  
-  <j:if test="${view.isGroupTopLevelItem(job)}">
+	  </tbody>
+  </j:if>
+	<j:if test="${view.isGroupTopLevelItem(job)}">
+		<j:set var="categoryId" value="${view.getGroupClassFor(job)}"/>
+		<thead id="cth_${categoryId}">
+			<tr id="category_${job.name}" class="${job.disabled?'disabledJob':null} categoryJobRow" category="${categoryId}"
+				categoryRole="category"
+				onClick="toggleJobGroupVisibility('${view.getViewName()}','${categoryId}')">
+				<td>
+					<span id="handle_${view.getGroupClassFor(job)}">
+						<img class="icon16x16" src="${rootURL}/plugin/categorized-view/images/collapse.png"/>
+					</span>
+					<script type="text/javascript">
+						document.observe("dom:loaded", function () {
+							restoreJobGroupCollapseState("${view.getViewName()}", "${categoryId}")
+						});
+					</script>
+				</td>
+				<td style="${indenter.getCss(job)}" colspan="${columnExtensions.size()+1}" data="${job.name}" width="99%">
+					<l:breakable value="${h.getRelativeDisplayNameFrom(job, itemGroup)}"/>
+				</td>
+			</tr>
+		</thead>
+		<tbody id="ctb_${categoryId}" class="${view.getGroupClassFor(job)} categoryJobs">
+			<j:set var="nested" value="${job.groupItems}"/>
+			<j:if test="${!view.lazyLoading}">
+				<j:forEach var="job" items="${nested}">
+					<j:set var="relativeLinkToJob" value="${h.getRelativeLinkTo(job)}"/>
+					<c:catProjectViewNestedRow jobBaseUrl="${relativeLinkToJob.substring(0, relativeLinkToJob.length() - job.shortUrl.length())}"/>
+				</j:forEach>
+			</j:if>
+		</tbody>
+	</j:if>
+	<j:if test="${false}">
+		<tr id="category_${job.name}" class="${job.disabled?'disabledJob':null} categoryJobRow" category="${job.name}"
+			categoryRole="category"
+			onClick="toggleJobGroupVisibility('${view.getViewName()}','${view.getGroupClassFor(job)}')">
+			<td>
+				<span id="handle_${view.getGroupClassFor(job)}">
+					<img class="icon16x16" src="${rootURL}/plugin/categorized-view/images/collapse.png"/>
+				</span>
+				<script type="text/javascript">
+					document.observe("dom:loaded", function () {
+						restoreJobGroupCollapseState("${view.getViewName()}", "${view.getGroupClassFor(job)}")
+					});
+				</script>
+			</td>
+			<j:forEach var="col" items="${columnExtensions}">
+				<st:include page="column.jelly" it="${col}"/>
+			</j:forEach>
+			<td>
+				<st:nbsp/>
+			</td>
+		</tr>
+		<tr id="jobNestedItems_${job.name}" class="${view.getGroupClassFor(job)} categoryJobs" category="${job.name}" categoryRole="child">
+			<td style="background-color: white;">
+				<st:nbsp/>
+			</td>
+			<td colspan="${columnExtensions.size()+1}" class="categoryJobsColumn">
+				<c:nestedProjectsView jobs="${job.groupItems}" columnExtensions="${columnExtensions}"/>
+			</td>
+		</tr>
+	</j:if>
+	<j:if test="${false}">
 	  <tr id="category_${job.name}" class="${job.disabled?'disabledJob':null} categoryJobRow" category="${job.name}"
 	    categoryRole="category"
 	  	onClick="toggleJobGroupVisibility('${view.getViewName()}','${view.getGroupClassFor(job)}')">

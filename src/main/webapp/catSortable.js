@@ -200,19 +200,34 @@ var CategorizedSortable = (function() {
                 
                 var aCategory = a.getAttribute("category");
                 var bCategory = b.getAttribute("category");
-                if (aCategory!=null && aCategory==bCategory) {
-                	if (a.getAttribute("categoryRole")=="category") 
-                		return -1;
-                	else
-                		return 1;
-				}
-                                
-                return s(this.extractData(aCell),
-                        this.extractData(bCell));
+                if (aCategory)
+                {
+                    if(aCategory==bCategory) {
+                        if (a.getAttribute("categoryRole")=="category")
+                            return -1;
+                        if (b.getAttribute("categoryRole")=="category")
+                            return 1;
+                    }
+                    else
+                    {
+                        return s(aCategory,bCategory);
+                    }
+                }
+                return s(this.extractData(aCell),this.extractData(bCell));
+
             }.bind(this));
 
             rows.each(function (e) {
-                this.table.tBodies[0].appendChild(e);
+                // fallback to old behaviour
+                var tbody=this.table.tBodies[0];
+                // try to find the default tbody for non-categorized jobs
+                var tmp=document.getElementById("ctb_default");
+                // if a job has a category, find the corresponding tbody
+                var catId= e.getAttribute("category");
+                if(catId)  tmp=document.getElementById("ctb_"+catId);
+                if(tmp) tbody=tmp;
+                // when inserting the row in the categorized tbody, we don't destroy the category associations of the job
+                tbody.appendChild(e);
             }.bind(this));
 
             // update arrow rendering
