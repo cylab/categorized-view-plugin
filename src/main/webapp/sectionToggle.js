@@ -51,29 +51,35 @@ function fadeInGroup(group, callback) {
 
 function hideJobGroup(handle, viewName, group) {
 	handle.setAttribute("collapseState", "collapsed");
-    fadeOutGroup(group);
+    // clear the old category on lazy loading
+    if("true"==$$("#projectstatus").first().getAttribute('lazyLoading'))
+        fadeOutGroup(group,function(){ this.getEl().innerHTML="" });
+    else
+        fadeOutGroup(group);
 	setGroupState(viewName,group, "none");
 	var src = $$("#handle_"+group+" img").first().src;
 	src = src.replace(/collapse.png/,"expand.png")
 	$$("#handle_"+group+" img").first().src = src;
 }
 
+function hideOtherJobGroups(group) {
+    var v=$$("#projectstatus").first();
+    var viewName=v.getAttribute('viewName')
+    $$(".categoryJobRow").each(
+        function(e){
+            var otherGroup=e.getAttribute("category")
+            if(otherGroup!=group)
+            {
+                var handle=$$("#handle_"+otherGroup).first()
+                hideJobGroup(handle, viewName, otherGroup)
+            }
+        }
+    )
+}
+
 function showJobGroup(handle, viewName, group) {
     var v=$$("#projectstatus").first();
-    if("true"== v.getAttribute('onlyExpandSelected'))
-    {
-        var viewName=v.getAttribute('viewName')
-        $$(".categoryJobRow").each(
-            function(e){
-                var otherGroup=e.getAttribute("category")
-                if(otherGroup!=group)
-                {
-                    var handle=$$("#handle_"+otherGroup).first()
-                    hideJobGroup(handle, viewName, otherGroup)
-                }
-            }
-        )
-    }
+    var hideOthers= ("true"== v.getAttribute('onlyExpandSelected'));
     if("true"==v.getAttribute('lazyLoading'))
     {
         var url=v.getAttribute('viewUrl')+"lazyJobList?group="+group;
@@ -85,8 +91,12 @@ function showJobGroup(handle, viewName, group) {
       			method: 'post',
       			onSuccess: function (x)
       			{
+                    if(hideOthers) hideOtherJobGroups(group);
                     fadeOutGroup(group, function(){
                         $$('#ctb_'+group).first().innerHTML=x.responseText;
+                        $$("table.categorizedSortable").each(function(e){
+                       		if(e.sortable)  e.sortable.refresh();
+                       	})
                         fadeInGroup(group);
                     });
                 },
@@ -97,7 +107,10 @@ function showJobGroup(handle, viewName, group) {
       			}
       		});
     }
-    else fadeInGroup(group);
+    else {
+        if(hideOthers) hideOtherJobGroups(group);
+        fadeInGroup(group);
+    }
     handle.setAttribute("collapseState", "expanded");
     setGroupState(viewName, group, "");
     var src = $$("#handle_"+group+" img").first().src;

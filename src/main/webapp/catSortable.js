@@ -101,7 +101,9 @@ var CategorizedSortable = (function() {
             var newRows = [];
             var rows = this.table.rows;
             for (var j = 1; j < rows.length; j++) {
-                newRows.push($(rows[j]));
+                var row=rows[j];
+                if(row.getAttribute("categoryRole")!="category")
+                    newRows.push($(rows[j]));
             }
             return newRows;
         },
