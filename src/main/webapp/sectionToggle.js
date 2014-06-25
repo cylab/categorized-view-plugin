@@ -93,7 +93,12 @@ function showJobGroup(handle, viewName, group) {
       			{
                     if(hideOthers) hideOtherJobGroups(group);
                     fadeOutGroup(group, function(){
-                        $$('#ctb_'+group).first().innerHTML=x.responseText;
+                        var tbody = $$('#ctb_' + group).first();
+                        tbody.innerHTML=x.responseText;
+                        // extract and evaluate inline <script> tags to not break "creative" column plugins...
+                        x.responseText.extractScripts().map(function(script) { return window.eval(script) });
+                        // apply UI tweaks and sorting for the newly loaded table rows
+                        Behaviour.applySubtree(tbody);
                         $$("table.categorizedSortable").each(function(e){
                        		if(e.sortable)  e.sortable.refresh();
                        	})
